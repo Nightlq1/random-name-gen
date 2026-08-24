@@ -1,0 +1,12 @@
+import random
+import string
+
+
+def generate_3letter_name():
+    letters = "".join(random.choices(string.ascii_lowercase, k=3))
+    number = random.randint(1, 9)  # Generates a number from 1 to 9
+    return f"{letters}{number}"
+
+
+for _ in range(50):
+    print(generate_3letter_name())
