@@ -1,0 +1,149 @@
+from ipaddress import ip_network
+import tkinter as tk
+
+
+def calculate(event=None):
+    cidr = entry.get().strip()
+
+    try:
+        network = ip_network(cidr, strict=False)
+
+        if network.prefixlen <= 30:
+            usable_hosts = network.num_addresses - 2
+            first_usable = network.network_address + 1
+            last_usable = network.broadcast_address - 1
+        elif network.prefixlen == 31:
+            usable_hosts = 2
+            first_usable = network.network_address
+            last_usable = network.broadcast_address
+        else:
+            usable_hosts = 1
+            first_usable = network.network_address
+            last_usable = network.network_address
+
+        wildcard = network.hostmask
+
+        binary_mask = ".".join(
+            f"{int(octet):08b}"
+            for octet in str(network.netmask).split(".")
+        )
+
+        result = (
+            f"Network: {network.network_address}\n"
+            f"Broadcast: {network.broadcast_address}\n"
+            f"Subnet mask: {network.netmask}\n"
+            f"Wildcard mask: {wildcard}\n"
+            f"Prefix: /{network.prefixlen}\n"
+            f"Total addresses: {network.num_addresses}\n"
+            f"Usable hosts: {usable_hosts}\n"
+            f"First usable: {first_usable}\n"
+            f"Last usable: {last_usable}\n\n"
+            f"Binary mask:\n{binary_mask}"
+        )
+
+        result_label.config(text=result, fg="white")
+
+    except ValueError:
+        result_label.config(
+            text="Invalid IP/CIDR\nExample: 192.168.1.20/26",
+            fg="#ff6b6b"
+        )
+
+
+def clear():
+    entry.delete(0, tk.END)
+    result_label.config(
+        text="Enter an address above to calculate.",
+        fg="#bbbbbb"
+    )
+    entry.focus()
+
+
+window = tk.Tk()
+window.title("CIDR Calculator")
+window.geometry("560x540")
+window.configure(bg="#121212")
+
+title = tk.Label(
+    window,
+    text="CIDR Calculator",
+    font=("Arial", 20, "bold"),
+    bg="#121212",
+    fg="white"
+)
+title.pack(pady=(25, 5))
+
+subtitle = tk.Label(
+    window,
+    text="IPv4 Subnet Calculator",
+    bg="#121212",
+    fg="#aaaaaa"
+)
+subtitle.pack(pady=(0, 20))
+
+label = tk.Label(
+    window,
+    text="Enter IP/CIDR",
+    bg="#121212",
+    fg="white"
+)
+label.pack()
+
+entry = tk.Entry(
+    window,
+    width=32,
+    font=("Consolas", 13),
+    bg="#222222",
+    fg="white",
+    insertbackground="white",
+    relief="flat",
+    justify="center"
+)
+entry.pack(ipady=7, pady=8)
+
+buttons = tk.Frame(window, bg="#121212")
+buttons.pack(pady=(5, 20))
+
+calculate_button = tk.Button(
+    buttons,
+    text="Calculate",
+    command=calculate,
+    width=14,
+    bg="#333333",
+    fg="white"
+)
+calculate_button.pack(side="left", padx=5)
+
+clear_button = tk.Button(
+    buttons,
+    text="Clear",
+    command=clear,
+    width=10,
+    bg="#222222",
+    fg="white"
+)
+clear_button.pack(side="left", padx=5)
+
+result_frame = tk.Frame(
+    window,
+    bg="#1c1c1c",
+    padx=20,
+    pady=20
+)
+result_frame.pack(padx=30, fill="x")
+
+result_label = tk.Label(
+    result_frame,
+    text="Enter an address above to calculate.",
+    justify="left",
+    font=("Consolas", 11),
+    bg="#1c1c1c",
+    fg="#bbbbbb"
+)
+result_label.pack(anchor="w")
+
+window.bind("<Return>", calculate)
+
+entry.focus()
+
+window.mainloop()
